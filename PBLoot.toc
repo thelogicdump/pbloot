@@ -1,0 +1,9 @@
+## Interface: 30100 
+## Title: PBLoot
+## Author: logicdump
+## Version: 0.3
+## Notes: PB Loot tracking & bidding system
+## SavedVariables: PBLootDB
+
+Dongle.lua
+PBLoot.lua
