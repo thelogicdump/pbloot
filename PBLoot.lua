@@ -34,20 +34,12 @@ function PBLoot:Enable()
 	
     self.db = self:InitializeDB("PBLootDB", self.defaults)
     self.profile = self.db.profile
-    --self.auctions = self.profile.auctions
-    --self.dkpList = self.profile.dkpList
-    --self.raids = self.profile.raids
---    PBLoot:OptionsOnLoad()
---    PBLoot:EnableFrames()
     
     self:RegisterMessage("DONGLE_PROFILE_CHANGED")
     self:RegisterMessage("DONGLE_PROFILE_DELETED")
     self:RegisterMessage("DONGLE_PROFILE_RESET")
 
     self:RegisterEvent("CHAT_MSG_WHISPER","ParseWhisper")
-
-    --self:RegisterMessage("PLAYER_REGEN_ENABLED")
-    --self:RegisterMessage("PLAYER_REGEN_DISABLED")
     
     self.cmd = self:InitializeSlashCommand("PBLoot commands", "PBLOOT", "pbloot", "pb", "pbl")
 	self.cmd:InjectDBCommands(self.db, "copy", "delete", "list","reset", "set")
@@ -57,8 +49,6 @@ function PBLoot:Enable()
 	self.cmd:RegisterSlashHandler("open - open bidding on an item", "open (.+)$", "OpenAuction")
     self.cmd:RegisterSlashHandler("close - close bidding on an item", "close (.+)$", "CloseAuction")
     self.cmd:RegisterSlashHandler("closeall - cloase bidding on all items", "closeall", "CloseAllAuctions")
-    self.cmd:RegisterSlashHandler("print - Print bids for an item", "print (.+)$", "PrintBids")
-	self.cmd:RegisterSlashHandler("printall - Print bids for all items", "printall", "PrintAllBids")
 	self.cmd:RegisterSlashHandler("clear - Remove bids for item", "remove (.+)$", "ClearAuction")
 	self.cmd:RegisterSlashHandler("clearall - Clear all bids for all items", "clear", "ClearAllAuctions")
 	self.cmd:RegisterSlashHandler("import - open the DKP import window", "import", "OpenImport")
@@ -360,71 +350,11 @@ function PBLoot:SortBids(list)
 	end
 end
 
-function PBLoot:PrintBids(itemLink)
-    local found, _, itemID, itemName    = string.find(itemLink, "^%s*|c%x+|Hitem%:(.-)%:.+|h%[(.*)%]")
-
-    SendChatMessage("Bids for " .. itemName .. " " .. itemID, "CHANNEL", "Common", GetChannelName("pbloot"));
-    for i, auction in ipairs(self.auctions) do
-        if (auction.itemID == itemID) then
-            self:SortBids(auction.mainBids)
-            self:SortBids(auction.sideBids)
-            self:SortBids(auction.offBids)
-
-			SendChatMessage("Main Spec Bids", "CHANNEL", "Common", GetChannelName("pbloot"));
-            for j, bid in ipairs(auction.mainBids) do
-				player = self:FindPlayerByID(bid.ID)
-				SendChatMessage("    " .. player.name .. " " .. player.dkp, "CHANNEL", "Common", GetChannelName("pbloot"));
-            end
-
-			SendChatMessage("Sidegrade Bids", "CHANNEL", "Common", GetChannelName("pbloot"));
-            for j, bid in ipairs(auction.sideBids) do
-				player = self:FindPlayerByID(bid.ID)
-				SendChatMessage("    " .. player.name .. " " .. player.dkp, "CHANNEL", "Common", GetChannelName("pbloot"));
-            end
-
-			SendChatMessage("Off Spec Bids", "CHANNEL", "Common", GetChannelName("pbloot"));
-            for j, bid in ipairs(auction.offBids) do
-				player = self:FindPlayerByID(bid.ID)	
-				SendChatMessage("    " .. player.name .. " " .. player.dkp, "CHANNEL", "Common", GetChannelName("pbloot"));
-            end
-        end
-    end
-end
-
-function PBLoot:PrintAllBids()
-    -- Two methods. 1 GUI 2 /printBids
-    for i, auction in ipairs(self.auctions) do
-		SendChatMessage("Bids for " .. auction.itemName .. " " .. auction.itemID, "CHANNEL", "Common", GetChannelName("pbloot"));
-		self:SortBids(auction.mainBids)
-		self:SortBids(auction.sideBids)
-		self:SortBids(auction.offBids)
-		
-		SendChatMessage("Main Spec Bids", "CHANNEL", "Common", GetChannelName("pbloot"));
-		for j, bid in ipairs(auction.mainBids) do
-			player = self:FindPlayerByID(bid.ID)
-			SendChatMessage("    " .. player.name .. " " .. player.dkp, "CHANNEL", "Common", GetChannelName("pbloot"));
-		end
-
-		SendChatMessage("Sidegrade Bids", "CHANNEL", "Common", GetChannelName("pbloot"));
-		for j, bid in ipairs(auction.sideBids) do
-			player = self:FindPlayerByID(bid.ID)
-			SendChatMessage("    " .. player.name .. " " .. player.dkp, "CHANNEL", "Common", GetChannelName("pbloot"));
-		end
-
-		SendChatMessage("Off Spec Bids", "CHANNEL", "Common", GetChannelName("pbloot"));
-		for j, bid in ipairs(auction.offBids) do
-			player = self:FindPlayerByID(bid.ID)
-			SendChatMessage("    " .. player.name .. " " .. player.dkp, "CHANNEL", "Common", GetChannelName("pbloot"));
-		end
-	end
-end
-
 function PBLoot:UpdateBidList(auction)
     local t, lineCount
     t = ""
 	lineCount = 1
 	
-
 	self:SortBids(auction.mainBids)
 	self:SortBids(auction.sideBids)
 	self:SortBids(auction.offBids)
@@ -436,7 +366,7 @@ function PBLoot:UpdateBidList(auction)
 		end
 
 		player = self:FindPlayerByID(bid.ID)
-		t = t .. player.name .. " (" .. PBLoot:Round(player.dkp,3) .. ")|n"
+		t = t .. player.name .. " (" .. Round(player.dkp,3) .. ")|n"
 
 		lineCount = lineCount + 1
     end
@@ -448,7 +378,7 @@ function PBLoot:UpdateBidList(auction)
         end
 
 		player = self:FindPlayerByID(bid.ID)
-		t = t .. player.name .. " (" .. PBLoot:Round(player.dkp,3) .. ")|n"
+		t = t .. player.name .. " (" .. Round(player.dkp,3) .. ")|n"
 
 		lineCount = lineCount + 1
     end
@@ -460,7 +390,7 @@ function PBLoot:UpdateBidList(auction)
 		end
 
 		player = self:FindPlayerByID(bid.ID)
-		t = t .. player.name .. " (" .. PBLoot:Round(player.dkp,3) .. ")|n"
+		t = t .. player.name .. " (" .. Round(player.dkp,3) .. ")|n"
 
 		lineCount = lineCount + 1
     end
@@ -474,11 +404,6 @@ function PBLoot:UpdateBidList(auction)
 end
 
 function PBLoot:CreateBidBox(itemLink)
-	--local test = CreateFrame("Frame", "AuctionFrame",UIParent,"PBLoot_AuctionFrame")
-	
-	--test:SetFrameStrata("BACKGROUND")
-	--test:SetPoint("CENTER",0,0)
-	--AuctionFrame.itemLink = itemLink
 	
     local f = CreateFrame("Frame",nil,UIParent)
 	f:SetFrameStrata("BACKGROUND")
@@ -515,241 +440,11 @@ function PBLoot:CreateBidBox(itemLink)
 	
 	name,_,itemRarity,itemLevel,_,itemType,itemSubType,_,itemEquipLoc = GetItemInfo(itemLink)
 	
-	local locationText = " "
-	
-	baseCost = 0
-	if itemLevel == 213 then
-		baseCost = 141
-	end
-	
-	if itemLevel == 226 then
-		baseCost = 200
-	end
-	
-	if itemLevel == 232 then
-		baseCost = 234
-	end
-	
-	if itemLevel == 239 then
-		baseCost = 283
-	end
+	costString = dkp_string(itemLevel, itemEquipLoc)
 
-	costGroup = {}
-	costModifier = {}
+	itemTitle:SetText(itemLink .. "|n" .. costString)
 	
-	i = 0
-	
-	if itemEquipLoc == "INVTYPE_HEAD" then
-		locationText = "Head"
-		costGroup[i] = "All"
-		costModifier[i] = 1
-		i = i + 1
-	end
-	
-	if itemEquipLoc == "INVTYPE_NECK" then
-		locationText = "Neck"
-		costGroup[i] = "All"
-		costModifier[i] = 0.5
-		i = i + 1
-	end
-	
-	if itemEquipLoc == "INVTYPE_SHOULDER" then
-		locationText = "Shoulder"
-		costGroup[i] = "All"
-		costModifier[i] = 0.75
-		i = i + 1
-	end
-	
-	if itemEquipLoc == "INVTYPE_CHEST" then
-		locationText = "Chest"
-		costGroup[i] = "All"
-		costModifier[i] = 1
-		i = i + 1
-	end
-	
-	if itemEquipLoc == "INVTYPE_ROBE" then
-		locationText = "Chest"
-		costGroup[i] = "All"
-		costModifier[i] = 1
-		i = i + 1
-	end
-	
-	if itemEquipLoc == "INVTYPE_WAIST" then
-		locationText = "Waist"
-		costGroup[i] = "All"
-		costModifier[i] = 0.75
-		i = i + 1
-	end
-	
-	if itemEquipLoc == "INVTYPE_LEGS" then
-		locationText = "Legs"
-		costGroup[i] = "All"
-		costModifier[i] = 1
-		i = i + 1
-	end
-	
-	if itemEquipLoc == "INVTYPE_FEET" then
-		locationText = "Feet"
-		costGroup[i] = "All"
-		costModifier[i] = 0.75
-		i = i + 1
-	end
-	
-	if itemEquipLoc == "INVTYPE_WRIST" then
-		locationText = "Wrist"
-		costGroup[i] = "All"
-		costModifier[i] = 0.5
-		i = i + 1
-	end
-	
-	if itemEquipLoc == "INVTYPE_HAND" then
-		locationText = "Hands"
-		costGroup[i] = "All"
-		costModifier[i] = 0.75
-		i = i + 1
-	end
-	
-	if itemEquipLoc == "INVTYPE_FINGER" then
-		locationText = "Finger"
-		costGroup[i] = "All"
-		costModifier[i] = 0.5
-		i = i + 1
-	end
-	
-	if itemEquipLoc == "INVTYPE_TRINKET" then
-		locationText = "Trinket"
-		costGroup[i] = "All"
-		costModifier[i] = 0.75
-		i = i + 1
-	end
-	
-	if itemEquipLoc == "INVTYPE_CLOAK" then
-		locationText = "Cloak"
-		costGroup[0] = "All"
-		costModifier[0] = 0.5
-		i = i + 1
-	end
-	
-	if itemEquipLoc == "INVTYPE_WEAPON" then
-		locationText = "1H Weapon"
-		costGroup[i] = "Standard"
-		costModifier[i] = 1.5
-		i = i + 1
-		costGroup[i] = "DW Melee"
-		costModifier[i] = 1
-		i = i + 1
-		costGroup[i] = "Hunter/Tank"
-		costModifier[i] = 0.5
-		i = i + 1
-	end
-	
-	if itemEquipLoc == "INVTYPE_SHIELD" then
-		locationText = "Shield"
-		costGroup[i] = "Tank"
-		costModifier[i] = 1.5
-		i = i + 1
-		costOptions[i]["Healer"] = "All"
-		costModifier[i] = 0.5 
-		i = i + 1
-	end
-	
-	if itemEquipLoc == "INVTYPE_2HWEAPON" then
-		locationText = "2H Weapon"
-		costGroup[i] = "Standard"
-		costModifier[i] = 2
-		i = i + 1
-		costGroup[i] = "TG Warrior"
-		costModifier[i] = 1.5
-		i = i + 1
-		costGroup[i] = "Hunter"
-		costModifier[i] = 1
-		i = i + 1
-	end
-	
-	if itemEquipLoc == "INVTYPE_WEAPONMAINHAND" then
-		locationText = "MH Weapon"
-		costGroup[i] = "Standard"
-		costModifier[i] = 1.5
-		i = i + 1
-		costGroup[i] = "DW Melee"
-		costModifier[i] = 1
-		i = i + 1
-		costGroup[i] = "Hunter/Tank"
-		costModifier[i] = 0.5
-		i = i + 1
-	end
-	
-	if itemEquipLoc == "INVTYPE_WEAPONOFFHAND" then
-		locationText = "OH Weapon"
-		costGroup[i] = "Standard"
-		costModifier[i] = 1.5
-		i = i + 1
-		costGroup[i] = "DW Melee"
-		costModifier[i] = 1
-		i = i + 1
-		costGroup[i] = "Hunter/Tank"
-		costModifier[i] = 0.5		
-		i = i + 1
-	end
-	
-	if itemEquipLoc == "INVTYPE_HOLDABLE" then
-		locationText = "Held in off-hand"
-		costGroup[i] = "All"
-		costModifier[i] = 0.5
-		i = i + 1
-	end
-	
-	if itemEquipLoc == "INVTYPE_RANGED" then
-		locationText = "Bow"
-		costGroup[i] = "Hunter"
-		costModifier[i] = 1.5
-		i = i + 1
-		costGroup[i] = "Other"
-		costModifier[i] = 0.5
-		i = i + 1
-	end
-	
-	if itemEquipLoc == "INVTYPE_THROWN" then
-		locationText = "Thrown"
-		costGroup[i] = "All"
-		costModifier[i] = 0.5
-		i = i + 1
-	end
-	
-	if itemEquipLoc == "INVTYPE_RANGEDRIGHT" then
-		locationText = "Ranged"
-		costGroup[i] = "Hunter"
-		costModifier[i] = 1.5
-		i = i + 1
-		costGroup[i] = "Other"
-		costModifier[i] = 0.5
-		i = i + 1
-	end
-	
-	if itemEquipLoc == "INVTYPE_RELIC" then
-		locationText = "Relic"
-		costGroup[i] = "All"
-		costModifier[i] = 0.5
-		i = i + 1
-	end
-	
-	if locationText == " " then
-		locationText = itemEquipLoc
-	end
-	
-	local costString = " "
-		
-	for j = 0, i-1 do
-		if j==0 then
-			costString = costGroup[j] .. ": " .. ceil(costModifier[j] * baseCost) .. " DKP"
-		else
-			costString = costString .. "|n" .. costGroup[j] .. ": " .. ceil(costModifier[j] * baseCost) .. " DKP"
-		end
-	end
-	
-	itemTitle:SetText(itemLink .. "|n" .. locationText .. " (ilvl " .. itemLevel .. ")" .. "|n" .. costString)
-	
-	f.baseHeight = (i+2) * 14 + 20
+	f.baseHeight = 90
 	f:SetHeight(f.baseHeight)
 	
 	bidderList = f:CreateFontString(nil,"ARTWORK","ChatFontNormal")
@@ -757,7 +452,7 @@ function PBLoot:CreateBidBox(itemLink)
 	bidderList:SetParent(f)
 	bidderList:SetWidth(self.frameWidth)
 	bidderList:SetHeight(24)
-	bidderList:SetPoint("TOPLEFT",0,-((i+2) * 14))
+	bidderList:SetPoint("TOPLEFT",0,-70)
 	
 	bidderList:SetNonSpaceWrap(false)
 	bidderList:SetJustifyV("TOP")
@@ -771,13 +466,6 @@ function PBLoot:CreateBidBox(itemLink)
 	closeButton:SetWidth(96)	
 	closeButton:SetScript("OnClick", function() PBLoot:CloseAuction(itemLink); this:GetParent().closeButton:Hide(); this:GetParent().clearButton:Show()end)
 	f.closeButton = closeButton
-	
---	bidderList = CreateFrame("Frame", "bidderList", f, "UIDropDownMenuTemplate"); 
---	bidderList:SetPoint("BOTTOM",0,20);
---	UIDropDownMenu_SetWidth(bidderList, 80)
---	UIDropDownMenu_Initialize(bidderList, bidderList_Initialise); 
---	f.bidderList = bidderList
---	f.bidderList:Hide()
 	
 	clearButton = CreateFrame("Button", "clearButton", f, "OptionsButtonTemplate")
 	clearButton:Show()
@@ -798,31 +486,6 @@ function PBLoot:CloseAuctionFrame(frame)
 	frame:Hide()
 end
 
-function bidderList_Initialise()
-	local info = UIDropDownMenu_CreateInfo();
-
-	info.text = "First Menu Item"; --the text of the menu item
-	info.value = 0; -- the value of the menu item. This can be a string also.
-	info.func = function() print(this.owner) end; --sets the function to execute when this item is clicked
-	info.owner = this:GetParent(); --binds the drop down menu as the parent of the menu item. This is very important for dynamic drop down menues.
-	info.checked = nil; --initially set the menu item to being unchecked with a yellow tick
-	info.icon = nil; --we can use this to set an icon for the drop down menu item to accompany the text
-	UIDropDownMenu_AddButton(info); --Adds the new button to the drop down menu specified in the UIDropDownMenu_Initialise function. In this case, it's MyDropDownMenu
-
-	info.text = "Second Menu Item";
-	info.value = 1;
-	info.func = function() MyDropDownMenuItem_OnClick() end;
-	info.owner = this:GetParent();
-	info.checked = nil;
-	info.icon = nil;
-	UIDropDownMenu_AddButton(info);
-
-end
-
-function PBLoot:Round(number,decimalPlaces)
-	return floor(number * (10^decimalPlaces))/(10^decimalPlaces)
-end
-
 function PBLoot:RepositionFrames()
 	self.nextBidFrameX = self.initialBidFrameX
 	for i, auction in ipairs(self.auctions) do
@@ -833,8 +496,113 @@ function PBLoot:RepositionFrames()
     end
 end
 
+-----------------------
+---- DKP AUTO CALC STUFF
+-----------------------
 
+function Round(num, idp)
+    return tonumber(string.format("%." .. (idp or 0) .. "f", num))
+end
 
+function CalculateDKPValue(ilvl, slot_mod)
+	return Round(0.483 * (2^(ilvl/26)) * slot_mod, 0)
+end
+
+function BuildDKPString(slot_name, ilvl, slot_mod)
+    return string.format("%s: %s dkp|n", slot_name, CalculateDKPValue(ilvl, slot_mod))
+end
+
+function dkp_string(ilvl, slot)
+	if slot == "INVTYPE_HEAD" then
+		return BuildDKPString("Head", ilvl, 1)
+	end
+	if slot == "INVTYPE_NECK" then
+		return BuildDKPString("Neck", ilvl, 0.5)
+	end
+	if slot == "INVTYPE_SHOULDER" then
+		return BuildDKPString("Shoulder", ilvl, 0.75)
+	end
+	if slot == "INVTYPE_CHEST" then
+		return BuildDKPString("Chest", ilvl, 1)
+	end
+	if slot == "INVTYPE_ROBE" then
+		return BuildDKPString("Chest", ilvl, 1)
+	end
+	if slot == "INVTYPE_WAIST" then
+		return BuildDKPString("Waist", ilvl, 0.75)
+	end
+	if slot == "INVTYPE_LEGS" then
+		return BuildDKPString("Legs", ilvl, 1)
+	end
+	if slot == "INVTYPE_FEET" then
+		return BuildDKPString("Feet", ilvl, 0.75)
+	end
+	if slot == "INVTYPE_WRIST" then
+		return BuildDKPString("Wrist", ilvl, 0.5)
+	end
+	if slot == "INVTYPE_HAND" then
+		return BuildDKPString("Hands", ilvl, 0.75)
+	end
+	if slot == "INVTYPE_CLOAK" then
+		return BuildDKPString("Cloak", ilvl, 0.5)
+	end
+	if slot == "INVTYPE_FINGER" then
+		return BuildDKPString("Finger", ilvl, 0.5)
+	end
+	if slot == "INVTYPE_TRINKET" then
+		return BuildDKPString("Trinket", ilvl, 0.75)
+	end
+	if slot == "INVTYPE_WEAPON" then
+		cost_string = BuildDKPString("OneH", ilvl, 1.5)
+		cost_string = cost_string .. BuildDKPString("OneH Dual", ilvl, 1)
+		cost_string = cost_string .. BuildDKPString("OneH Hunter/Tank", ilvl, 0.5)
+		return cost_string
+	end
+	if slot == "INVTYPE_SHIELD" then
+		cost_string = BuildDKPString("Tank Shield", ilvl, 1.5)
+		cost_string = cost_string .. BuildDKPString("Healer Shield", ilvl, 0.5)
+		return cost_string
+	end
+	if slot == "INVTYPE_2HWEAPON" then
+		cost_string = BuildDKPString("2H", ilvl, 2)
+		cost_string = cost_string .. BuildDKPString("2H TG", ilvl, 1.5)
+		cost_string = cost_string .. BuildDKPString("2H Hunter", ilvl, 1)
+		return cost_string
+	end
+	if slot == "INVTYPE_WEAPONMAINHAND" then
+		cost_string = BuildDKPString("MH", ilvl, 1.5)
+		cost_string = cost_string .. BuildDKPString("MH Dual", ilvl, 1)
+		cost_string = cost_string .. BuildDKPString("MH Hunter/Tank", ilvl, 0.5)
+		return cost_string
+	end
+	if slot == "INVTYPE_WEAPONOFFHAND" then
+		cost_string = BuildDKPString("OH", ilvl, 1.5)
+		cost_string = cost_string .. BuildDKPString("OH Dual", ilvl, 1)
+		cost_string = cost_string .. BuildDKPString("OH Hunter/Tank", ilvl, 0.5)
+		return cost_string
+	end
+	if slot == "INVTYPE_HOLDABLE" then
+		return BuildDKPString("OH Frill", ilvl, 0.5)
+	end
+	if slot == "INVTYPE_RANGED" then
+		cost_string = BuildDKPString("Ranged Hunter", ilvl, 1.5)
+		cost_string = cost_string .. BuildDKPString("Ranged Other", ilvl, 0.5)
+		return cost_string
+	end
+	if slot == "INVTYPE_THROWN" then
+		cost_string = BuildDKPString("Ranged Hunter", ilvl, 1.5)
+		cost_string = cost_string .. BuildDKPString("Ranged Other", ilvl, 0.5)
+		return cost_string
+	end
+	if slot == "INVTYPE_RANGEDRIGHT" then
+		cost_string = BuildDKPString("Ranged Hunter", ilvl, 1.5)
+		cost_string = cost_string .. BuildDKPString("Ranged Other", ilvl, 0.5)
+		return cost_string
+	end
+	if slot == "INVTYPE_RELIC" then
+		return BuildDKPString("Relic", ilvl, 0.5)
+	end
+end
 
 
 --------------------------------------
@@ -858,7 +626,7 @@ function PBLoot:DONGLE_PROFILE_RESET(event, db, parent, svname, profileKey)
 		self.profile = self.db.profile
 		self.profileKey = profileKey
 	
-		self:Print(L.PROFILE_RESET, profileKey)
+		self:PrintF(L.PROFILE_RESET, profileKey)
 	end
 end
 
