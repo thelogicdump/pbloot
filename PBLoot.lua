@@ -440,7 +440,11 @@ function PBLoot:CreateBidBox(itemLink)
 	
 	name,_,itemRarity,itemLevel,_,itemType,itemSubType,_,itemEquipLoc = GetItemInfo(itemLink)
 	
+	
 	costString = dkp_string(itemLevel, itemEquipLoc)
+    if (costString == nil) then
+        costString = ""
+    end
 
 	itemTitle:SetText(itemLink .. "|n" .. costString)
 	
