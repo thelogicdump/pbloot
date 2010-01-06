@@ -1,7 +1,7 @@
-## Interface: 30100 
+## Interface: 30300
 ## Title: PBLoot
 ## Author: logicdump
-## Version: 0.3
+## Version: 0.4
 ## Notes: PB Loot tracking & bidding system
 ## SavedVariables: PBLootDB
 
