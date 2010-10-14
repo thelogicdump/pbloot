@@ -79,6 +79,7 @@ end
 
 OldHideOutgoingWhisper = ChatFrame_MessageEventHandler;
 function HideOutgoingWhisper(self, event, ...)
+    local arg1 = ...;
     if (event == "CHAT_MSG_WHISPER_INFORM") then
         local found, _ = string.find(arg1, "^<PBLOOT>.*")
         if found then
@@ -170,7 +171,8 @@ end
 --
 ---------------------------
 
-function PBLoot:ParseWhisper()
+function PBLoot:ParseWhisper(event, ...)
+    local arg1, arg2, arg3 = ...;
     local found, _ = string.find(arg1, "^%s*|c.*")
     if (found and self.acceptingBids) then
         local found, _, itemID, itemName, bidType = string.find(arg1, "^%s*|c%x+|Hitem%:(.-)%:.+|h%[(.*)%]%s*(.+)")
@@ -253,13 +255,11 @@ function PBLoot:CloseAuction(itemLink)
     self.acceptingBids = false --Assume that no bids are being accepted & re-enable if open auction found
 
     for i, auction in ipairs(self.auctions) do
-        if (auction.itemID == itemID) then
+        if (auction.itemID == itemID && auction.open) then
             auction.open = false
             auction.bidBox:SetHeight(auction.bidBox:GetHeight() + 20)
-        else
-            if (auction.open == true) then
-                self.acceptingBids = true
-            end
+        else if (auction.open == true) then
+            self.acceptingBids = true
         end
     end
 end
@@ -468,7 +468,7 @@ function PBLoot:CreateBidBox(itemLink)
     closeButton:SetPoint("BOTTOM",0,0)
     closeButton:SetHeight(20)
     closeButton:SetWidth(96)
-    closeButton:SetScript("OnClick", function() PBLoot:CloseAuction(itemLink); this:GetParent().closeButton:Hide(); this:GetParent().clearButton:Show()end)
+    closeButton:SetScript("OnClick", function(this, ...) PBLoot:CloseAuction(itemLink); this:GetParent().closeButton:Hide(); this:GetParent().clearButton:Show()end)
     f.closeButton = closeButton
 
     clearButton = CreateFrame("Button", "clearButton", f, "OptionsButtonTemplate")
@@ -477,7 +477,7 @@ function PBLoot:CreateBidBox(itemLink)
     clearButton:SetPoint("BOTTOM",0,0)
     clearButton:SetHeight(20)
     clearButton:SetWidth(96)
-    clearButton:SetScript("OnClick", function() PBLoot:ClearAuction(itemLink);end)
+    clearButton:SetScript("OnClick", function(this, ...) PBLoot:ClearAuction(itemLink);end)
     f.clearButton = clearButton
     f.clearButton:Hide()
 
