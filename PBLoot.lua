@@ -255,7 +255,7 @@ function PBLoot:CloseAuction(itemLink)
     self.acceptingBids = false --Assume that no bids are being accepted & re-enable if open auction found
 
     for i, auction in ipairs(self.auctions) do
-        if (auction.itemID == itemID && auction.open) then
+        if (auction.itemID == itemID and auction.open) then
             auction.open = false
             auction.bidBox:SetHeight(auction.bidBox:GetHeight() + 20)
         elseif (auction.open == true) then
