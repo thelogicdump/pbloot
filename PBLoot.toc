@@ -1,7 +1,7 @@
 ## Interface: 40000 
 ## Title: PBLoot
 ## Author: logicdump
-## Version: 0.4
+## Version: 0.5
 ## Notes: PB Loot tracking & bidding system
 ## SavedVariables: PBLootDB
 
