@@ -77,19 +77,15 @@ end
 --
 ----------------------------------
 
-OldHideOutgoingWhisper = ChatFrame_MessageEventHandler;
-function HideOutgoingWhisper(self, event, ...)
-    local arg1 = ...;
-    if (event == "CHAT_MSG_WHISPER_INFORM") then
-        local found, _ = string.find(arg1, "^<PBLOOT>.*")
-        if found then
-            return
-        end
+function HideOutgoingWhisper(self, event, msg, ...)
+    if msg:find("^<PBLOOT>.*") then
+        return true
+    else
+        return false, msg, ...
     end
-
-    OldHideOutgoingWhisper(self, event, ...);
 end
-ChatFrame_MessageEventHandler = HideOutgoingWhisper;
+
+ChatFrame_AddMessageEventFilter("CHAT_MSG_WHISPER_INFORM", HideOutgoingWhisper)
 
 ---------------------------
 --
